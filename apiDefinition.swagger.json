@@ -1,0 +1,1136 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "PricePirate Price Data",
+    "description": "PricePirate Price Data looks up live marketplace prices by EAN, GTIN or marketplace product ID across European and international marketplaces and price comparison sites. Get every offer with shop, price, shipping and availability, or product details with the lowest, average and highest price. Each query costs one credit, and new accounts get 100 free credits.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "UCX Media support",
+      "url": "https://pricepirate.com/docs/en/guide/help/support",
+      "email": "info@gaponik.com"
+    }
+  },
+  "host": "api-v2.pricepirate.com",
+  "basePath": "/",
+  "schemes": [
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "x-ms-connector-metadata": [
+    {
+      "propertyName": "Website",
+      "propertyValue": "https://pricepirate.com/en/price-api/"
+    },
+    {
+      "propertyName": "Privacy policy",
+      "propertyValue": "https://pricepirate.com/en/legal/privacy"
+    },
+    {
+      "propertyName": "Categories",
+      "propertyValue": "Data;Commerce"
+    }
+  ],
+  "x-ms-capabilities": {
+    "testConnection": {
+      "operationId": "GetAccount",
+      "parameters": {}
+    }
+  },
+  "securityDefinitions": {
+    "api_key": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "x-api-key"
+    }
+  },
+  "security": [
+    {
+      "api_key": []
+    }
+  ],
+  "paths": {
+    "/api/v2/jobs/offers": {
+      "post": {
+        "operationId": "GetOffers",
+        "summary": "Get offers by EAN or product ID",
+        "description": "Looks up every offer for each EAN or product ID on the chosen marketplace and waits until the price job is finished. Returns one item per offer, and one item for each query without offers.",
+        "x-ms-visibility": "important",
+        "parameters": [
+          {
+            "$ref": "#/parameters/marketplace"
+          },
+          {
+            "$ref": "#/parameters/country"
+          },
+          {
+            "$ref": "#/parameters/search_by"
+          },
+          {
+            "$ref": "#/parameters/queries"
+          },
+          {
+            "$ref": "#/parameters/skip_empty"
+          },
+          {
+            "$ref": "#/parameters/include_details"
+          },
+          {
+            "$ref": "#/parameters/zipcode"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The finished price job with one item per offer.",
+            "schema": {
+              "$ref": "#/definitions/OffersResult"
+            }
+          },
+          "202": {
+            "$ref": "#/responses/JobPending"
+          }
+        }
+      }
+    },
+    "/api/v2/jobs/details": {
+      "post": {
+        "operationId": "GetProductDetails",
+        "summary": "Get product details by EAN or product ID",
+        "description": "Looks up product details for each EAN or product ID on the chosen marketplace and waits until the price job is finished. Returns one item per query with the lowest, average and highest price.",
+        "x-ms-visibility": "important",
+        "parameters": [
+          {
+            "$ref": "#/parameters/marketplace"
+          },
+          {
+            "$ref": "#/parameters/country"
+          },
+          {
+            "$ref": "#/parameters/search_by"
+          },
+          {
+            "$ref": "#/parameters/queries"
+          },
+          {
+            "$ref": "#/parameters/skip_empty_products"
+          },
+          {
+            "$ref": "#/parameters/include_details"
+          },
+          {
+            "$ref": "#/parameters/zipcode"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The finished price job with one item per query.",
+            "schema": {
+              "$ref": "#/definitions/ProductDetailsResult"
+            }
+          },
+          "202": {
+            "$ref": "#/responses/JobPending"
+          }
+        }
+      }
+    },
+    "/api/v2/jobs/start": {
+      "post": {
+        "operationId": "StartPriceJob",
+        "summary": "Start price job",
+        "description": "Starts a price job and returns its job ID right away without waiting. Use Get job results within about 1 hour after the job finishes to read the results.",
+        "x-ms-visibility": "advanced",
+        "parameters": [
+          {
+            "$ref": "#/parameters/marketplace"
+          },
+          {
+            "$ref": "#/parameters/country"
+          },
+          {
+            "$ref": "#/parameters/search_by"
+          },
+          {
+            "$ref": "#/parameters/queries"
+          },
+          {
+            "$ref": "#/parameters/include_details"
+          },
+          {
+            "$ref": "#/parameters/zipcode"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The price job was started.",
+            "schema": {
+              "$ref": "#/definitions/StartedJob"
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/jobs/{jobId}/results": {
+      "get": {
+        "operationId": "GetJobResults",
+        "summary": "Get job results",
+        "description": "Reads the results of a price job as offers, product details or the raw job JSON. Results are kept for about 1 hour after the job finishes.",
+        "x-ms-visibility": "advanced",
+        "parameters": [
+          {
+            "$ref": "#/parameters/jobId"
+          },
+          {
+            "name": "output",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "default": "offers",
+            "enum": [
+              "offers",
+              "details",
+              "raw"
+            ],
+            "x-ms-enum-values": [
+              {
+                "value": "offers",
+                "displayName": "Offers (one item per offer)"
+              },
+              {
+                "value": "details",
+                "displayName": "Product details (one item per query)"
+              },
+              {
+                "value": "raw",
+                "displayName": "Raw job JSON"
+              }
+            ],
+            "x-ms-summary": "Output",
+            "description": "Choose whether to return offers, product details or the unchanged job JSON."
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "default": true,
+            "x-ms-summary": "Wait until finished",
+            "description": "When this is Yes, the action waits until the job is finished. When this is No, a pending job is returned right away with its progress."
+          },
+          {
+            "$ref": "#/parameters/skip_empty"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The price job with its results.",
+            "schema": {
+              "$ref": "#/definitions/JobResults"
+            }
+          },
+          "202": {
+            "$ref": "#/responses/JobPending"
+          }
+        }
+      }
+    },
+    "/api/v2/jobs/{jobId}": {
+      "get": {
+        "operationId": "PollJob",
+        "summary": "Poll price job",
+        "description": "Checks a price job while the platform waits for it to finish. This operation is used internally by the connector.",
+        "x-ms-visibility": "internal",
+        "parameters": [
+          {
+            "$ref": "#/parameters/jobId"
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "x-ms-visibility": "internal",
+            "x-ms-summary": "View",
+            "description": "The output shape that the connector returns when the job is finished."
+          },
+          {
+            "name": "skip_empty",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "x-ms-visibility": "internal",
+            "x-ms-summary": "Skip queries without results",
+            "description": "Whether queries without results are left out of the output."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The finished price job.",
+            "schema": {
+              "$ref": "#/definitions/JobResults"
+            }
+          },
+          "202": {
+            "$ref": "#/responses/JobPending"
+          }
+        }
+      }
+    },
+    "/api/v2/account": {
+      "get": {
+        "operationId": "GetAccount",
+        "summary": "Get account",
+        "description": "Returns the credit balance, limits and available marketplaces of the account that owns the API key.",
+        "x-ms-visibility": "advanced",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The account.",
+            "schema": {
+              "$ref": "#/definitions/Account"
+            }
+          }
+        }
+      }
+    },
+    "/pricepirate/countries": {
+      "get": {
+        "operationId": "ListCountries",
+        "summary": "List countries",
+        "description": "Lists the countries that are available for a marketplace. This operation is used internally by the connector.",
+        "x-ms-visibility": "internal",
+        "parameters": [
+          {
+            "name": "marketplace",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "x-ms-summary": "Marketplace",
+            "description": "The marketplace whose countries are listed."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The countries of the marketplace.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "countries": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string",
+                        "x-ms-summary": "Country code",
+                        "description": "The two-letter country code."
+                      },
+                      "name": {
+                        "type": "string",
+                        "x-ms-summary": "Country name",
+                        "description": "The English country name."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "parameters": {
+    "marketplace": {
+      "name": "marketplace",
+      "in": "query",
+      "required": true,
+      "type": "string",
+      "enum": [
+        "idealo",
+        "amazon",
+        "google-shopping",
+        "bol",
+        "klarna",
+        "pricerunner"
+      ],
+      "x-ms-enum-values": [
+        {
+          "value": "idealo",
+          "displayName": "Idealo"
+        },
+        {
+          "value": "amazon",
+          "displayName": "Amazon"
+        },
+        {
+          "value": "google-shopping",
+          "displayName": "Google Shopping"
+        },
+        {
+          "value": "bol",
+          "displayName": "Bol"
+        },
+        {
+          "value": "klarna",
+          "displayName": "Klarna"
+        },
+        {
+          "value": "pricerunner",
+          "displayName": "PriceRunner"
+        }
+      ],
+      "x-ms-summary": "Marketplace",
+      "description": "The marketplace or price comparison site to look up."
+    },
+    "country": {
+      "name": "country",
+      "in": "query",
+      "required": true,
+      "type": "string",
+      "x-ms-summary": "Country",
+      "description": "The country of the marketplace. The available countries depend on the marketplace.",
+      "x-ms-dynamic-values": {
+        "operationId": "ListCountries",
+        "value-collection": "countries",
+        "value-path": "code",
+        "value-title": "name",
+        "parameters": {
+          "marketplace": {
+            "parameter": "marketplace"
+          }
+        }
+      }
+    },
+    "search_by": {
+      "name": "search_by",
+      "in": "query",
+      "required": false,
+      "type": "string",
+      "default": "ean",
+      "enum": [
+        "ean",
+        "product_id"
+      ],
+      "x-ms-enum-values": [
+        {
+          "value": "ean",
+          "displayName": "EAN or GTIN"
+        },
+        {
+          "value": "product_id",
+          "displayName": "Marketplace product ID (ASIN on Amazon)"
+        }
+      ],
+      "x-ms-summary": "Search by",
+      "description": "Choose whether the queries are EANs or GTINs, or product IDs of the marketplace. Klarna and PriceRunner only support EANs."
+    },
+    "queries": {
+      "name": "body",
+      "in": "body",
+      "required": true,
+      "schema": {
+        "type": "object",
+        "required": [
+          "queries"
+        ],
+        "properties": {
+          "queries": {
+            "type": "array",
+            "x-ms-summary": "Queries",
+            "description": "The EANs, GTINs or product IDs to look up, from 1 to 1000. Each query costs one credit.",
+            "items": {
+              "type": "string",
+              "x-ms-summary": "Query",
+              "description": "One EAN, GTIN or product ID."
+            }
+          }
+        }
+      }
+    },
+    "skip_empty": {
+      "name": "skip_empty",
+      "in": "query",
+      "required": false,
+      "type": "boolean",
+      "default": false,
+      "x-ms-visibility": "advanced",
+      "x-ms-summary": "Skip queries without offers",
+      "description": "When this is Yes, queries that found no offers or failed are left out. By default they appear as one item each with their status."
+    },
+    "skip_empty_products": {
+      "name": "skip_empty",
+      "in": "query",
+      "required": false,
+      "type": "boolean",
+      "default": false,
+      "x-ms-visibility": "advanced",
+      "x-ms-summary": "Skip queries without a product",
+      "description": "When this is Yes, queries that found no product or failed are left out. By default they appear as one item each with their status."
+    },
+    "include_details": {
+      "name": "include_details",
+      "in": "query",
+      "required": false,
+      "type": "boolean",
+      "default": true,
+      "x-ms-visibility": "advanced",
+      "x-ms-summary": "Include product details (Amazon only)",
+      "description": "For Amazon only. When this is No, the product detail lookup is skipped and only offers are returned."
+    },
+    "zipcode": {
+      "name": "zipcode",
+      "in": "query",
+      "required": false,
+      "type": "string",
+      "x-ms-visibility": "advanced",
+      "x-ms-summary": "Delivery postal code (Amazon only)",
+      "description": "For Amazon only. The postal code that delivery prices and availability are calculated for."
+    },
+    "jobId": {
+      "name": "jobId",
+      "in": "path",
+      "required": true,
+      "type": "string",
+      "x-ms-url-encoding": "single",
+      "x-ms-summary": "Job ID",
+      "description": "The ID of the price job."
+    }
+  },
+  "responses": {
+    "JobPending": {
+      "description": "The price job is still running.",
+      "headers": {
+        "Location": {
+          "type": "string",
+          "description": "The URL to poll for the job."
+        },
+        "Retry-After": {
+          "type": "integer",
+          "description": "The number of seconds to wait before the next poll."
+        }
+      }
+    }
+  },
+  "definitions": {
+    "JobSummary": {
+      "type": "object",
+      "properties": {
+        "found": {
+          "type": "integer",
+          "x-ms-summary": "Found",
+          "description": "The number of queries that found a product."
+        },
+        "not_found": {
+          "type": "integer",
+          "x-ms-summary": "Not found",
+          "description": "The number of queries that found no product."
+        },
+        "error": {
+          "type": "integer",
+          "x-ms-summary": "Errors",
+          "description": "The number of queries that failed. Their credits are refunded."
+        }
+      }
+    },
+    "JobCredits": {
+      "type": "object",
+      "properties": {
+        "billed": {
+          "type": "integer",
+          "x-nullable": true,
+          "x-ms-summary": "Credits billed",
+          "description": "The credits this job costs after refunds."
+        },
+        "refunded": {
+          "type": "integer",
+          "x-nullable": true,
+          "x-ms-summary": "Credits refunded",
+          "description": "The credits refunded for failed queries."
+        }
+      }
+    },
+    "OfferItem": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "x-ms-summary": "Query",
+          "description": "The EAN, GTIN or product ID that was looked up."
+        },
+        "status": {
+          "type": "string",
+          "x-ms-summary": "Query status",
+          "description": "The result of the query: found, not_found or error."
+        },
+        "error": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Error message",
+          "description": "The error message when the query failed."
+        },
+        "errorCode": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Error code",
+          "description": "The error code when the query failed, for example timeout or invalid_query."
+        },
+        "source": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Marketplace",
+          "description": "The marketplace that was searched."
+        },
+        "country": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Country",
+          "description": "The country of the marketplace."
+        },
+        "job_id": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Job ID",
+          "description": "The ID of the price job."
+        },
+        "product_id": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Product ID",
+          "description": "The ID of the product on the marketplace."
+        },
+        "product_name": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Product name",
+          "description": "The name of the product."
+        },
+        "product_url": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Product URL",
+          "description": "The product page on the marketplace."
+        },
+        "ean": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "EAN",
+          "description": "The EAN of the product."
+        },
+        "brand": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Brand",
+          "description": "The brand of the product."
+        },
+        "price_min": {
+          "type": "number",
+          "x-nullable": true,
+          "x-ms-summary": "Lowest price",
+          "description": "The lowest price of the product across all offers."
+        },
+        "offers_count": {
+          "type": "integer",
+          "x-nullable": true,
+          "x-ms-summary": "Number of offers",
+          "description": "The number of offers for the product."
+        },
+        "fetched_at": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Fetched at",
+          "description": "When the data was fetched, in ISO 8601 format."
+        },
+        "shop_name": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Shop name",
+          "description": "The name of the shop that makes the offer."
+        },
+        "shop_url": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Shop URL",
+          "description": "The link to the offer."
+        },
+        "price": {
+          "type": "number",
+          "x-nullable": true,
+          "x-ms-summary": "Price",
+          "description": "The item price of the offer."
+        },
+        "shipping": {
+          "type": "number",
+          "x-nullable": true,
+          "x-ms-summary": "Shipping",
+          "description": "The shipping cost of the offer."
+        },
+        "total": {
+          "type": "number",
+          "x-nullable": true,
+          "x-ms-summary": "Total price",
+          "description": "The price including shipping."
+        },
+        "currency": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Currency",
+          "description": "The currency code of the prices, for example EUR."
+        },
+        "availability_code": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Availability code",
+          "description": "The normalized availability, for example in_stock."
+        },
+        "availability_text": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Availability text",
+          "description": "The availability text as shown on the marketplace."
+        },
+        "condition": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Condition",
+          "description": "The condition of the item, for example new or used."
+        },
+        "position": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Position",
+          "description": "The position of the offer in the marketplace listing."
+        },
+        "marketplace_name": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Sold via",
+          "description": "The marketplace the shop sells through, when the shop is a marketplace seller."
+        },
+        "shop_review_rating": {
+          "type": "number",
+          "x-nullable": true,
+          "x-ms-summary": "Shop rating",
+          "description": "The review rating of the shop."
+        },
+        "shop_review_count": {
+          "type": "integer",
+          "x-nullable": true,
+          "x-ms-summary": "Shop review count",
+          "description": "The number of reviews of the shop."
+        },
+        "free_return": {
+          "type": "boolean",
+          "x-nullable": true,
+          "x-ms-summary": "Free return",
+          "description": "Whether the shop offers free returns."
+        },
+        "voucher": {
+          "type": "boolean",
+          "x-nullable": true,
+          "x-ms-summary": "Voucher",
+          "description": "Whether a voucher applies to the offer."
+        },
+        "direct_sale": {
+          "type": "boolean",
+          "x-nullable": true,
+          "x-ms-summary": "Direct sale",
+          "description": "Whether the marketplace sells the item itself."
+        },
+        "title": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Offer title",
+          "description": "The title of the offer as the shop lists it."
+        },
+        "sellerId": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Seller ID",
+          "description": "The ID of the seller on the marketplace."
+        }
+      }
+    },
+    "ProductItem": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "x-ms-summary": "Query",
+          "description": "The EAN, GTIN or product ID that was looked up."
+        },
+        "status": {
+          "type": "string",
+          "x-ms-summary": "Query status",
+          "description": "The result of the query: found, not_found or error."
+        },
+        "error": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Error message",
+          "description": "The error message when the query failed."
+        },
+        "errorCode": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Error code",
+          "description": "The error code when the query failed, for example timeout or invalid_query."
+        },
+        "id": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Product ID",
+          "description": "The ID of the product on the marketplace."
+        },
+        "name": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Product name",
+          "description": "The name of the product."
+        },
+        "url": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Product URL",
+          "description": "The product page on the marketplace."
+        },
+        "ean": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "EAN",
+          "description": "The EAN of the product."
+        },
+        "brand": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Brand",
+          "description": "The brand of the product."
+        },
+        "description": {
+          "type": "string",
+          "x-nullable": true,
+          "x-ms-summary": "Description",
+          "description": "The product description."
+        },
+        "image_urls": {
+          "type": "array",
+          "x-ms-summary": "Image URLs",
+          "description": "The links to the product images.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "categories": {
+          "type": "array",
+          "x-ms-summary": "Categories",
+          "description": "The categories of the product on the marketplace.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "review_rating": {
+          "type": "number",
+          "x-nullable": true,
+          "x-ms-summary": "Review rating",
+          "description": "The average review rating of the product."
+        },
+        "review_count": {
+          "type": "integer",
+          "x-nullable": true,
+          "x-ms-summary": "Review count",
+          "description": "The number of product reviews."
+        },
+        "price_min": {
+          "type": "number",
+          "x-nullable": true,
+          "x-ms-summary": "Lowest price",
+          "description": "The lowest price across all offers."
+        },
+        "price_avg": {
+          "type": "number",
+          "x-nullable": true,
+          "x-ms-summary": "Average price",
+          "description": "The average price across all offers."
+        },
+        "price_max": {
+          "type": "number",
+          "x-nullable": true,
+          "x-ms-summary": "Highest price",
+          "description": "The highest price across all offers."
+        },
+        "offers_count": {
+          "type": "integer",
+          "x-nullable": true,
+          "x-ms-summary": "Number of offers",
+          "description": "The number of offers for the product."
+        },
+        "platform_data": {
+          "type": "object",
+          "x-ms-summary": "Marketplace data",
+          "description": "Additional fields that only this marketplace provides."
+        }
+      }
+    },
+    "OffersResult": {
+      "type": "object",
+      "properties": {
+        "job_id": {
+          "$ref": "#/definitions/JobId"
+        },
+        "status": {
+          "$ref": "#/definitions/JobStatus"
+        },
+        "source": {
+          "type": "string",
+          "x-ms-summary": "Marketplace",
+          "description": "The marketplace that was searched."
+        },
+        "country": {
+          "type": "string",
+          "x-ms-summary": "Country",
+          "description": "The country of the marketplace."
+        },
+        "total": {
+          "type": "integer",
+          "x-ms-summary": "Queries",
+          "description": "The number of queries in the job."
+        },
+        "summary": {
+          "$ref": "#/definitions/JobSummary"
+        },
+        "credits": {
+          "$ref": "#/definitions/JobCredits"
+        },
+        "offers": {
+          "type": "array",
+          "x-ms-summary": "Offers",
+          "description": "One item per offer, plus one item for each query without offers.",
+          "items": {
+            "$ref": "#/definitions/OfferItem"
+          }
+        }
+      }
+    },
+    "ProductDetailsResult": {
+      "type": "object",
+      "properties": {
+        "job_id": {
+          "$ref": "#/definitions/JobId"
+        },
+        "status": {
+          "$ref": "#/definitions/JobStatus"
+        },
+        "source": {
+          "type": "string",
+          "x-ms-summary": "Marketplace",
+          "description": "The marketplace that was searched."
+        },
+        "country": {
+          "type": "string",
+          "x-ms-summary": "Country",
+          "description": "The country of the marketplace."
+        },
+        "total": {
+          "type": "integer",
+          "x-ms-summary": "Queries",
+          "description": "The number of queries in the job."
+        },
+        "summary": {
+          "$ref": "#/definitions/JobSummary"
+        },
+        "credits": {
+          "$ref": "#/definitions/JobCredits"
+        },
+        "products": {
+          "type": "array",
+          "x-ms-summary": "Products",
+          "description": "One item per query.",
+          "items": {
+            "$ref": "#/definitions/ProductItem"
+          }
+        }
+      }
+    },
+    "JobResults": {
+      "type": "object",
+      "properties": {
+        "job_id": {
+          "$ref": "#/definitions/JobId"
+        },
+        "status": {
+          "$ref": "#/definitions/JobStatus"
+        },
+        "source": {
+          "type": "string",
+          "x-ms-summary": "Marketplace",
+          "description": "The marketplace that was searched."
+        },
+        "country": {
+          "type": "string",
+          "x-ms-summary": "Country",
+          "description": "The country of the marketplace."
+        },
+        "done": {
+          "type": "integer",
+          "x-ms-summary": "Queries done",
+          "description": "The number of queries that are finished."
+        },
+        "total": {
+          "type": "integer",
+          "x-ms-summary": "Queries",
+          "description": "The number of queries in the job."
+        },
+        "summary": {
+          "$ref": "#/definitions/JobSummary"
+        },
+        "credits": {
+          "$ref": "#/definitions/JobCredits"
+        },
+        "offers": {
+          "type": "array",
+          "x-ms-summary": "Offers",
+          "description": "One item per offer when Output is Offers.",
+          "items": {
+            "$ref": "#/definitions/OfferItem"
+          }
+        },
+        "products": {
+          "type": "array",
+          "x-ms-summary": "Products",
+          "description": "One item per query when Output is Product details.",
+          "items": {
+            "$ref": "#/definitions/ProductItem"
+          }
+        },
+        "job": {
+          "type": "object",
+          "x-ms-summary": "Raw job JSON",
+          "description": "The unchanged job JSON from the API when Output is Raw job JSON."
+        }
+      }
+    },
+    "StartedJob": {
+      "type": "object",
+      "properties": {
+        "job_id": {
+          "$ref": "#/definitions/JobId"
+        },
+        "status": {
+          "$ref": "#/definitions/JobStatus"
+        },
+        "credits_remaining": {
+          "type": "integer",
+          "x-nullable": true,
+          "x-ms-summary": "Credits remaining",
+          "description": "The spendable credits after this job was charged."
+        }
+      }
+    },
+    "JobId": {
+      "type": "string",
+      "x-ms-summary": "Job ID",
+      "description": "The ID of the price job."
+    },
+    "JobStatus": {
+      "type": "string",
+      "x-ms-summary": "Job status",
+      "description": "The status of the price job: pending or completed."
+    },
+    "Account": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "x-ms-summary": "Account name",
+          "description": "The name of the account."
+        },
+        "credits": {
+          "type": "object",
+          "properties": {
+            "balance": {
+              "type": "integer",
+              "x-ms-summary": "Credit balance",
+              "description": "The spendable credits right now."
+            }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "concurrency": {
+              "type": "object",
+              "properties": {
+                "limit": {
+                  "type": "integer",
+                  "x-ms-summary": "Concurrent query limit",
+                  "description": "The number of queries that can run at the same time."
+                },
+                "in_flight": {
+                  "type": "integer",
+                  "x-ms-summary": "Queries running",
+                  "description": "The queries in jobs that are not finished and polled yet."
+                },
+                "remaining": {
+                  "type": "integer",
+                  "x-ms-summary": "Concurrent queries remaining",
+                  "description": "The queries that can still be started now."
+                }
+              }
+            },
+            "daily": {
+              "type": "object",
+              "x-nullable": true,
+              "properties": {
+                "limit": {
+                  "type": "integer",
+                  "x-ms-summary": "Daily query limit",
+                  "description": "The number of queries allowed per UTC day."
+                },
+                "used": {
+                  "type": "integer",
+                  "x-ms-summary": "Queries today",
+                  "description": "The queries submitted since 00:00 UTC."
+                },
+                "remaining": {
+                  "type": "integer",
+                  "x-ms-summary": "Queries left today",
+                  "description": "The queries that can still be submitted today."
+                },
+                "resets_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "x-ms-summary": "Daily limit resets at",
+                  "description": "When the daily limit resets."
+                }
+              }
+            }
+          }
+        },
+        "entitlements": {
+          "type": "array",
+          "x-ms-summary": "Available lookups",
+          "description": "The marketplaces and lookup types that the account can use.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "string",
+                "x-ms-summary": "Marketplace",
+                "description": "The marketplace."
+              },
+              "operation": {
+                "type": "string",
+                "x-ms-summary": "Lookup type",
+                "description": "The lookup type, for example search-by-gtin."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "properties": {
+    "connectionParameters": {
+      "api_key": {
+        "type": "securestring",
+        "uiDefinition": {
+          "displayName": "API Key",
+          "description": "Your PricePirate API key. Create one in the PricePirate dashboard at https://dashboard.pricepirate.com. New accounts get 100 free credits.",
+          "tooltip": "Provide your PricePirate API key",
+          "constraints": {
+            "tabIndex": 2,
+            "clearText": false,
+            "required": "true"
+          }
+        }
+      }
+    },
+    "iconBrandColor": "#0B0B0B",
+    "scriptOperations": [
+      "GetOffers",
+      "GetProductDetails",
+      "StartPriceJob",
+      "GetJobResults",
+      "PollJob",
+      "ListCountries"
+    ],
+    "capabilities": [
+      "actions"
+    ],
+    "policyTemplateInstances": [
+      {
+        "templateId": "setheader",
+        "title": "Identify the integration",
+        "parameters": {
+          "x-ms-apimTemplateParameter.name": "x-pricepirate-integration",
+          "x-ms-apimTemplateParameter.value": "power-automate",
+          "x-ms-apimTemplateParameter.existsAction": "override",
+          "x-ms-apimTemplate-policySection": "Request"
+        }
+      }
+    ],
+    "publisher": "UCX Media",
+    "stackOwner": "UCX Media"
+  }
+}
